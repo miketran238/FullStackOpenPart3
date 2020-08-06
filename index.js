@@ -2,11 +2,11 @@ const express = require('express')
 const morgan = require('morgan')
 const app = express()
 app.use(express.json())
-morgan.token('id', function getId (req) {
-    return req.id
-  })
-  
-app.use(morgan('combined'))
+morgan.token('resBody', (req, res) => {
+    return JSON.stringify(res.send)
+});
+
+app.use(morgan(':method :url :status - :response-time ms :resBody'))
 let persons = [
     {
       id: 1,
@@ -41,8 +41,8 @@ app.get('/info', (req, res) => {
 })
 app.get('/api/persons', (request, response) => {
     response.json(persons)
-    const morganLog = 
-        morgan.token('tiny', function (request, response) { return request.headers['content-type'] })
+    //const morganLog = 
+        
     //console.log(morganLog)
 })
 
@@ -118,7 +118,7 @@ const unknownEndpoint = (request, response) => {
   }
 app.use(unknownEndpoint)
 
-const PORT = 3001
+const PORT = 3333 || 3001
 app.listen(PORT, () => {
 console.log(`Server running on port ${PORT}`)
 })
