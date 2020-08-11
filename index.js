@@ -4,7 +4,14 @@ const morgan = require('morgan')
 const app = express()
 const cors = require('cors')
 const Person = require('./models/person')
-
+const logger = (request, response, next) => {
+  console.log('Method:', request.method)
+  console.log('Path:  ', request.path)
+  console.log('Body:  ', request.body)
+  console.log('---')
+  next()
+}
+app.use(logger)
 app.use(express.static('build'))
 app.use(cors())
 app.use(express.json())
@@ -31,7 +38,7 @@ app.get('/api/persons', (request, response) => {
   })
 })
 
-app.get('/api/persons/:id', (request, response) => {
+app.get('/api/persons/:id', (request, response, get) => {
   Person.findById(request.params.id)
     .then(person => {
       if (person) {
@@ -70,7 +77,7 @@ const generateId = () => {
   return Math.floor(Math.random() * 10000000)
 }
 
-app.post('/api/persons', (request, response) => {
+app.post('/api/persons', (request, response, next) => {
   const body = request.body
   if (!body.name) {
     return response.status(400).json({ error: 'name missing' })
@@ -84,21 +91,14 @@ app.post('/api/persons', (request, response) => {
     number: body.number
   })
 
-  person.save().then(savedPerson => {
-    response.json(savedPerson)
-  })
+  person.save()
+  .then(savedNote => savedNote.toJSON())
+  .then(savedAndFormattedNote => {
+    response.json(savedAndFormattedNote)
+  }) 
+  .catch(error => next(error)) 
+
 })
-
-// handler of logging
-const requestLogger = (request, response, next) => {
-  console.log('Method:', request.method)
-  console.log('Path:  ', request.path)
-  console.log('Body:  ', request.body)
-  console.log('---')
-  next()
-}
-
-app.use(requestLogger)
 
 // handler of requests with unknown endpoint
 const unknownEndpoint = (request, response) => {
@@ -110,13 +110,17 @@ app.use(unknownEndpoint)
 const errorHandler = (error, request, response, next) => {
   console.error(error.message)
 
-  if (error.name === 'CastError') {
+  if (error.name === 'CastError' && error.kind == 'ObjectId') {
     return response.status(400).send({ error: 'malformatted id' })
-  } 
+  }  else if (error.name === 'ValidationError') {
+    return response.status(400).json({ error: error.message })
+  }
 
   next(error)
 }
+
 app.use(errorHandler)
+
 
 const PORT = process.env.PORT || 3001
 console.log(process.env.PORT)
