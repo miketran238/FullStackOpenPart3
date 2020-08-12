@@ -10,6 +10,7 @@
     "build:ui": "rm -rf build && cd ../Full-Stack-Open-Submission/part2/phonebook && npm run build --prod && cp -r build ../../../PhoneBookBackEnd/",
     "myTestCopy": "Xcopy /E/I/H/C/Y \"./build\" \"../build/\"",
     "myBuild": "cd ../Full-Stack-Open-Submission/part2/phonebook && npm run build --prod && Xcopy /E/I/H/C/Y .\\build ..\\..\\..\\PhoneBookBackEnd\\build",
+    "lint": "eslint .",
     "deploy": "git push heroku master",
     "deploy:full": "npm run build:ui && git add . && git commit -m uibuild && npm run deploy",
     "logs:prod": "heroku logs --tail"
@@ -32,6 +33,7 @@
     "morgan": "^1.10.0"
   },
   "devDependencies": {
+    "eslint": "^7.6.0",
     "nodemon": "^2.0.4"
   }
 }
